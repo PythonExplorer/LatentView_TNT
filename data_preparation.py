@@ -83,7 +83,7 @@ def map_team_match_count():
 		row_count+=1
 	workbook.close()
 
-def map_player_runs():
+def map_batsmen_stats():
 	player_stats = {}
 	player_matchid = {}
 	for row_index in range(2,sheet.nrows):
@@ -124,12 +124,18 @@ def map_player_runs():
 	batsmen_stat_sheet.write(0,1,"Total Runs")
 	batsmen_stat_sheet.write(0,2,"Number of Dismissals")
 	batsmen_stat_sheet.write(0,3,"Number of Innings")
+	batsmen_stat_sheet.write(0,4,"Batting Average")
 	row_count+=1
 	for x in player_stats:
 		batsmen_stat_sheet.write(row_count,0,x)
 		batsmen_stat_sheet.write(row_count,1,player_stats[x][0])
 		batsmen_stat_sheet.write(row_count,2,player_stats[x][1])
 		batsmen_stat_sheet.write(row_count,3,player_stats[x][2])
+		if (player_stats[x][1]):
+			batsmen_stat_sheet.write(row_count,4,
+				float((player_stats[x][0])/(player_stats[x][1])))
+		else:
+			batsmen_stat_sheet.write(row_count,4,0)		
 		row_count+=1
 	workbook.close()						
 
@@ -144,9 +150,9 @@ def check_total_runs():
 
 
 
-print(check_total_runs())
+#print(check_total_runs())
 
-#map_player_runs()
+map_batsmen_stats()
 #map_matchid_team()
 #map_team_match_count()
 
