@@ -134,8 +134,19 @@ def map_player_runs():
 	workbook.close()						
 
 
+def check_total_runs():
+	total_runs=0
+	for row_index in range(2,sheet.nrows):
+		for col_index in range(1,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'H':
+				total_runs+=sheet.cell(row_index,col_index).value
+	return total_runs			
 
-map_player_runs()
+
+
+print(check_total_runs())
+
+#map_player_runs()
 #map_matchid_team()
 #map_team_match_count()
 
