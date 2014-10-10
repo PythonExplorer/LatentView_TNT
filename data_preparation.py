@@ -6,7 +6,7 @@ import xlsxwriter
 
 
 #Open data sheet
-book = open_workbook('sample2.xls')
+book = open_workbook('Cricket_Dataset.xls')
 
 #Index data sheet
 sheet = book.sheet_by_index(0)
@@ -192,7 +192,153 @@ def map_batsmen_stats():
 		row_count+=1
 	workbook.close()						
 
+
+
+def calc_runs_per_match():
+	runs_per_match = {}
+	for row_index in range(2,sheet.nrows):
+		for col_index in range(sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'X':
+				curr_match_id = sheet.cell(row_index,col_index-21).value
+				curr_runs = sheet.cell(row_index,col_index).value
+				is_wicket = sheet.cell(row_index,col_index+1).value
+				curr_inn = sheet.cell(row_index,col_index-20).value
+				is_wide = sheet.cell(row_index,col_index-3).value
+				is_nb = sheet.cell(row_index,col_index-4).value
+				if curr_match_id in runs_per_match:
+					if curr_inn == 1:
+						runs_per_match[curr_match_id][0]+=curr_runs
+						if not (is_wide or is_nb):
+							runs_per_match[curr_match_id][2]+=1
+
+					else:
+						runs_per_match[curr_match_id][3]+=curr_runs
+						if not (is_wide or is_nb):
+							runs_per_match[curr_match_id][5]+=1
+					if is_wicket != "":
+						if curr_inn == 1:
+							runs_per_match[curr_match_id][1]+=1
+						else:
+							runs_per_match[curr_match_id][4]+=1
+				else:
+					runs_per_match[curr_match_id]=[]
+					runs_per_match[curr_match_id].append(curr_runs)
+					if is_wicket != "":
+						runs_per_match[curr_match_id].append(1)
+					else:
+						runs_per_match[curr_match_id].append(0)
+					if not (is_wide or is_nb):
+						runs_per_match[curr_match_id].append(1)
+					else:
+						runs_per_match[curr_match_id].append(0)
+					runs_per_match[curr_match_id].append(0)
+					runs_per_match[curr_match_id].append(0)
+					runs_per_match[curr_match_id].append(0)	
+	return runs_per_match							
+
+
+
+# Going to create a dictionary based on the unique match id. 
+# Match ID : [Team1 , Team2 , Toss , Toss Decision , Team Batting 1st , Team Batting 2nd ,
+#				Score-1 , RunRate - 1 , Score - 2 , RunRate - 2 , Winner , MOM , Venue ,
+#				Country]
+
 def match_stats():
+	complete_match_stats={}
+	runs_stats = {}
+	venues_aus_wc15 = ["Sydney Cricket Ground","Melbourne Cricket Ground","Adelaide Oval",
+						"Brisbane Cricket Ground, Woolloongabba","Western Australia Cricket Association Ground",
+						"Bellerive Oval","Manuka Oval"
+					]
+	venues_nz_wc15	= ["Eden Park","Hagley Oval","Seddon Park","McLean Park","Westpac Stadium",
+						"Saxton Oval","University Oval"
+					]
+
+	for row_index in range(2,sheet.nrows):
+		for col_index in range(sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'C':
+				curr_match_id = sheet.cell(row_index,col_index).value
+				team1 = sheet.cell(row_index,col_index+9).value
+				team2 = sheet.cell(row_index,col_index+10).value
+				toss_dec = sheet.cell(row_index,col_index+6).value
+				toss_winner = sheet.cell(row_index,col_index+7).value
+				batting_first = sheet.cell(row_index,col_index+2).value
+				curr_venue = sheet.cell(row_index,col_index+8).value
+				curr_mom = sheet.cell(row_index,col_index+11).value
+				if team1 == batting_first:
+					batting_second = team2
+				else:
+					batting_second = team1
+				runs_per_match = calc_runs_per_match()
+				if curr_match_id not in complete_match_stats:
+					complete_match_stats[curr_match_id] = [] 
+					complete_match_stats[curr_match_id].append(team1)
+					complete_match_stats[curr_match_id].append(team2)
+					complete_match_stats[curr_match_id].append(toss_winner)
+					complete_match_stats[curr_match_id].append(toss_dec)
+					complete_match_stats[curr_match_id].append(batting_first)
+					complete_match_stats[curr_match_id].append(batting_second)
+					complete_match_stats[curr_match_id].append(runs_per_match[curr_match_id][0])
+					complete_match_stats[curr_match_id].append(runs_per_match[curr_match_id][1])
+					if (runs_per_match[curr_match_id][2]/6) != 0:
+						complete_match_stats[curr_match_id].append(float((runs_per_match[curr_match_id][0])/
+																	float(runs_per_match[curr_match_id][2]/6))
+															)
+					else:
+						complete_match_stats[curr_match_id].append(0)
+						
+					complete_match_stats[curr_match_id].append(runs_per_match[curr_match_id][3])
+					complete_match_stats[curr_match_id].append(runs_per_match[curr_match_id][4])
+					if (runs_per_match[curr_match_id][5]/6) != 0:	
+						complete_match_stats[curr_match_id].append(float((runs_per_match[curr_match_id][3])/
+																	float(runs_per_match[curr_match_id][5]/6))
+															)
+					else:
+						complete_match_stats[curr_match_id].append(0)	
+					if runs_per_match[curr_match_id][0]>runs_per_match[curr_match_id][3]:
+						complete_match_stats[curr_match_id].append(batting_first)
+					elif runs_per_match[curr_match_id][0]<runs_per_match[curr_match_id][3]:	
+						complete_match_stats[curr_match_id].append(batting_second)
+					else:	
+						complete_match_stats[curr_match_id].append("Tie")
+					complete_match_stats[curr_match_id].append(curr_mom)
+					complete_match_stats[curr_match_id].append(curr_venue)
+					if curr_venue in venues_aus_wc15:
+						complete_match_stats[curr_match_id].append("AUS")
+					elif curr_venue in venues_aus_wc15:
+						complete_match_stats[curr_match_id].append("NZ")
+					else:
+						complete_match_stats[curr_match_id].append("")
+						
+	#Create new sheet
+	workbook,complete_match_stats_sheet = create_new_sheet("complete_match_stats.xls")
+	#Initialize rows,columns
+	row_count = 0
+	complete_match_stats_sheet.write(0,0,"Match ID")
+	complete_match_stats_sheet.write(0,1,"Team1")
+	complete_match_stats_sheet.write(0,2,"Team2")
+	complete_match_stats_sheet.write(0,3,"Toss Winner")
+	complete_match_stats_sheet.write(0,4,"Toss Decision")
+	complete_match_stats_sheet.write(0,5,"Bat - 1")
+	complete_match_stats_sheet.write(0,6,"Bat - 2")
+	complete_match_stats_sheet.write(0,7,"Score - 1")
+	complete_match_stats_sheet.write(0,8,"Wkt - 1")
+	complete_match_stats_sheet.write(0,9,"RR - 1")
+	complete_match_stats_sheet.write(0,10,"Score - 2")
+	complete_match_stats_sheet.write(0,11,"Wkt - 2")
+	complete_match_stats_sheet.write(0,12,"RR - 2")
+	complete_match_stats_sheet.write(0,13,"Winner")
+	complete_match_stats_sheet.write(0,14,"MOM")
+	complete_match_stats_sheet.write(0,15,"Venue")
+	complete_match_stats_sheet.write(0,16,"Country")
+	row_count+=1
+	for x in complete_match_stats:
+		complete_match_stats_sheet.write(row_count,0,x)
+		for y in range(1,17):
+			complete_match_stats_sheet.write(row_count,y,complete_match_stats[x][y-1])
+	workbook.close()
+
+
 
 def check_total_runs():
 	total_runs=0
@@ -210,8 +356,8 @@ def check_total_runs():
 #map_matchid_team()
 #map_team_match_count()
 
-score_batsmen_match()
-
+#score_batsmen_match()
+match_stats()
 
 
 
