@@ -83,6 +83,58 @@ def map_team_match_count():
 		row_count+=1
 	workbook.close()
 
+
+def score_batsmen_match():
+	matchid_players_run = {}
+	for row_index in range(2,sheet.nrows):
+		for col_index in range(1,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'C':
+				curr_match_id = sheet.cell(row_index,col_index).value	
+				if curr_match_id not in matchid_players_run:
+					matchid_players_run[curr_match_id]={}
+				curr_batsmen = sheet.cell(row_index,col_index+2).value
+				nonstricker_batsmen = sheet.cell(row_index,col_index+4).value
+				curr_runs = sheet.cell(row_index,col_index+5).value
+				curr_ball = sheet.cell(row_index,col_index+6).value
+				if curr_ball > 0:
+					wide = 1
+				else:
+					wide = 0	
+				if curr_batsmen in matchid_players_run[curr_match_id]:
+					matchid_players_run[curr_match_id][curr_batsmen][0]+=curr_runs
+					matchid_players_run[curr_match_id][curr_batsmen][1]+=(1-wide)
+				else:
+					matchid_players_run[curr_match_id][curr_batsmen]=[curr_runs,1-wide]
+				if nonstricker_batsmen not in matchid_players_run[curr_match_id]:
+					matchid_players_run[curr_match_id][nonstricker_batsmen] = [0,0]
+	#Create new sheet
+	workbook,batsmen_match_stat_sheet = create_new_sheet("batsmen_match_stats.xls")
+	#Initialize rows,columns
+	row_count = 0
+	batsmen_match_stat_sheet.write(0,0,"Match ID")
+	batsmen_match_stat_sheet.write(0,1,"Player")
+	batsmen_match_stat_sheet.write(0,2,"Runs")
+	batsmen_match_stat_sheet.write(0,3,"Balls Faced")	
+	batsmen_match_stat_sheet.write(0,4,"Strike Rate")
+
+	row_count+=1
+	for x in matchid_players_run:
+		for y in matchid_players_run[x]:
+			batsmen_match_stat_sheet.write(row_count,0,x)
+			batsmen_match_stat_sheet.write(row_count,1,y)
+			batsmen_match_stat_sheet.write(row_count,2,matchid_players_run[x][y][0])
+			batsmen_match_stat_sheet.write(row_count,3,matchid_players_run[x][y][1])
+			if (matchid_players_run[x][y][1]):
+				batsmen_match_stat_sheet.write(row_count,4,
+					"%.2f"%(float((matchid_players_run[x][y][0])/
+						(matchid_players_run[x][y][1]))*100)
+					)
+			else:
+				batsmen_match_stat_sheet.write(row_count,4,0)		
+			row_count+=1
+	workbook.close()				
+
+
 def map_batsmen_stats():
 	player_stats = {}
 	player_matchid = {}
@@ -121,16 +173,17 @@ def map_batsmen_stats():
 	#Initialize rows,columns
 	row_count = 0
 	batsmen_stat_sheet.write(0,0,"Player Name")
-	batsmen_stat_sheet.write(0,1,"Total Runs")
-	batsmen_stat_sheet.write(0,2,"Number of Dismissals")
-	batsmen_stat_sheet.write(0,3,"Number of Innings")
+	batsmen_stat_sheet.write(0,1,"Number of Innings")
+	batsmen_stat_sheet.write(0,2,"Total Runs")
+	batsmen_stat_sheet.write(0,3,"Not Outs")
 	batsmen_stat_sheet.write(0,4,"Batting Average")
+
 	row_count+=1
 	for x in player_stats:
 		batsmen_stat_sheet.write(row_count,0,x)
-		batsmen_stat_sheet.write(row_count,1,player_stats[x][0])
-		batsmen_stat_sheet.write(row_count,2,player_stats[x][1])
-		batsmen_stat_sheet.write(row_count,3,player_stats[x][2])
+		batsmen_stat_sheet.write(row_count,2,player_stats[x][0])
+		batsmen_stat_sheet.write(row_count,3,player_stats[x][2]-player_stats[x][1])
+		batsmen_stat_sheet.write(row_count,1,player_stats[x][2])
 		if (player_stats[x][1]):
 			batsmen_stat_sheet.write(row_count,4,
 				float((player_stats[x][0])/(player_stats[x][1])))
@@ -139,7 +192,8 @@ def map_batsmen_stats():
 		row_count+=1
 	workbook.close()						
 
-
+def match_stats():
+	
 def check_total_runs():
 	total_runs=0
 	for row_index in range(2,sheet.nrows):
@@ -148,13 +202,15 @@ def check_total_runs():
 				total_runs+=sheet.cell(row_index,col_index).value
 	return total_runs			
 
-
+	
 
 #print(check_total_runs())
 
-map_batsmen_stats()
+#map_batsmen_stats()
 #map_matchid_team()
 #map_team_match_count()
+
+score_batsmen_match()
 
 
 
