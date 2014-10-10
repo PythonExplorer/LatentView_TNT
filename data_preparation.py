@@ -6,7 +6,7 @@ import xlsxwriter
 
 
 #Open data sheet
-book = open_workbook('Cricket_Dataset.xls')
+book = open_workbook('sample2.xls')
 
 #Index data sheet
 sheet = book.sheet_by_index(0)
@@ -186,7 +186,7 @@ def map_batsmen_stats():
 		batsmen_stat_sheet.write(row_count,3,player_stats[x][2]-player_stats[x][1])
 		if (player_stats[x][1]):
 			batsmen_stat_sheet.write(row_count,4,
-				float((player_stats[x][0])/(player_stats[x][1])))
+				"%.2f"%float((player_stats[x][0])/(player_stats[x][1])))
 		else:
 			batsmen_stat_sheet.write(row_count,4,0)		
 		row_count+=1
@@ -253,7 +253,7 @@ def match_stats():
 	venues_nz_wc15	= ["Eden Park","Hagley Oval","Seddon Park","McLean Park","Westpac Stadium",
 						"Saxton Oval","University Oval"
 					]
-
+	runs_per_match = calc_runs_per_match()
 	for row_index in range(2,sheet.nrows):
 		for col_index in range(sheet.ncols):
 			if cellname(row_index,col_index)[0] == 'C':
@@ -269,7 +269,6 @@ def match_stats():
 					batting_second = team2
 				else:
 					batting_second = team1
-				runs_per_match = calc_runs_per_match()
 				if curr_match_id not in complete_match_stats:
 					complete_match_stats[curr_match_id] = [] 
 					complete_match_stats[curr_match_id].append(team1)
@@ -281,31 +280,34 @@ def match_stats():
 					complete_match_stats[curr_match_id].append(runs_per_match[curr_match_id][0])
 					complete_match_stats[curr_match_id].append(runs_per_match[curr_match_id][1])
 					if (runs_per_match[curr_match_id][2]/6) != 0:
-						complete_match_stats[curr_match_id].append(float((runs_per_match[curr_match_id][0])/
-																	float(runs_per_match[curr_match_id][2]/6))
-															)
+						complete_match_stats[curr_match_id].append("%.2f"%((runs_per_match[curr_match_id][0])/
+																	(runs_per_match[curr_match_id][2]/6.0)
+																))
 					else:
 						complete_match_stats[curr_match_id].append(0)
 						
 					complete_match_stats[curr_match_id].append(runs_per_match[curr_match_id][3])
 					complete_match_stats[curr_match_id].append(runs_per_match[curr_match_id][4])
 					if (runs_per_match[curr_match_id][5]/6) != 0:	
-						complete_match_stats[curr_match_id].append(float((runs_per_match[curr_match_id][3])/
-																	float(runs_per_match[curr_match_id][5]/6))
-															)
+						complete_match_stats[curr_match_id].append("%.2f"%((runs_per_match[curr_match_id][3])/
+																	(runs_per_match[curr_match_id][5]/6.0)
+																))
 					else:
-						complete_match_stats[curr_match_id].append(0)	
-					if runs_per_match[curr_match_id][0]>runs_per_match[curr_match_id][3]:
-						complete_match_stats[curr_match_id].append(batting_first)
-					elif runs_per_match[curr_match_id][0]<runs_per_match[curr_match_id][3]:	
-						complete_match_stats[curr_match_id].append(batting_second)
+						complete_match_stats[curr_match_id].append(0)
+					if curr_mom == "":
+						complete_match_stats[curr_match_id].append("No Result")	
 					else:	
-						complete_match_stats[curr_match_id].append("Tie")
+						if runs_per_match[curr_match_id][0]>runs_per_match[curr_match_id][3]:
+							complete_match_stats[curr_match_id].append(batting_first)
+						elif runs_per_match[curr_match_id][0]<runs_per_match[curr_match_id][3]:	
+							complete_match_stats[curr_match_id].append(batting_second)
+						else:	
+							complete_match_stats[curr_match_id].append("Tie")
 					complete_match_stats[curr_match_id].append(curr_mom)
 					complete_match_stats[curr_match_id].append(curr_venue)
 					if curr_venue in venues_aus_wc15:
 						complete_match_stats[curr_match_id].append("AUS")
-					elif curr_venue in venues_aus_wc15:
+					elif curr_venue in venues_nz_wc15:
 						complete_match_stats[curr_match_id].append("NZ")
 					else:
 						complete_match_stats[curr_match_id].append("")
@@ -336,6 +338,7 @@ def match_stats():
 		complete_match_stats_sheet.write(row_count,0,x)
 		for y in range(1,17):
 			complete_match_stats_sheet.write(row_count,y,complete_match_stats[x][y-1])
+		row_count+=1	
 	workbook.close()
 
 
@@ -352,12 +355,12 @@ def check_total_runs():
 
 #print(check_total_runs())
 
-#map_batsmen_stats()
+map_batsmen_stats()
 #map_matchid_team()
 #map_team_match_count()
 
 #score_batsmen_match()
-match_stats()
+#match_stats()
 
 
 
