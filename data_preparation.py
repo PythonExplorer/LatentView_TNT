@@ -181,9 +181,9 @@ def map_batsmen_stats():
 	row_count+=1
 	for x in player_stats:
 		batsmen_stat_sheet.write(row_count,0,x)
+		batsmen_stat_sheet.write(row_count,1,player_stats[x][2])
 		batsmen_stat_sheet.write(row_count,2,player_stats[x][0])
 		batsmen_stat_sheet.write(row_count,3,player_stats[x][2]-player_stats[x][1])
-		batsmen_stat_sheet.write(row_count,1,player_stats[x][2])
 		if (player_stats[x][1]):
 			batsmen_stat_sheet.write(row_count,4,
 				float((player_stats[x][0])/(player_stats[x][1])))
@@ -193,7 +193,7 @@ def map_batsmen_stats():
 	workbook.close()						
 
 def match_stats():
-	
+
 def check_total_runs():
 	total_runs=0
 	for row_index in range(2,sheet.nrows):
