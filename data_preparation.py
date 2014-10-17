@@ -6,7 +6,7 @@ import xlsxwriter
 
 
 #Open data sheet
-book = open_workbook('batsmen_match_stats.xls')
+book = open_workbook('bat/batsmen_match_stats.xls')
 
 #Index data sheet
 sheet = book.sheet_by_index(0)
