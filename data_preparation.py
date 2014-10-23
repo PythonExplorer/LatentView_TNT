@@ -45,7 +45,7 @@ def map_matchid_team():
 				if not curr_match_id in match_ids:
 					match_ids[curr_match_id] = []
 			if cellname(row_index,col_index)[0] == 'L' or cellname(row_index,col_index)[0] == 'M':
-				curr_team = sheet.cell(row_index,col_index).value;
+				curr_team = sheet.cell(row_index,col_index).value
 				if len(match_ids[curr_match_id]) < 2:
 					match_ids[curr_match_id].append(curr_team)
 	workbook,match_id_team_sheet = create_new_sheet("matchid_team.xls")
@@ -248,7 +248,7 @@ def calc_runs_per_match():
 
 def complete_batsmen_stats():
 	batsmen_stats = {}
-	for row_index in range(2,sheet.nrows):
+	for row_index in range(1,sheet.nrows):
 		for col_index in range(sheet.ncols):
 			if cellname(row_index,col_index)[0] == 'B':
 				curr_batsmen = sheet.cell(row_index,col_index).value
@@ -300,13 +300,13 @@ def complete_batsmen_stats():
 																batsmen_stats[x][2]/dismissals)
 																)
 			else:
-				complete_batsmen_stats_sheet.write(row_count,6,"NA")
+				complete_batsmen_stats_sheet.write(row_count,6,0)
 			if 	batsmen_stats[x][1] != 0:
 				complete_batsmen_stats_sheet.write(row_count,7,"%.2f"%(float)(
 																batsmen_stats[x][2]* 100/batsmen_stats[x][1]) 
 																)
 			else:
-				complete_batsmen_stats_sheet.write(row_count,7,"NA")
+				complete_batsmen_stats_sheet.write(row_count,7,0)
 			complete_batsmen_stats_sheet.write(row_count,8,batsmen_stats[x][5])
 			complete_batsmen_stats_sheet.write(row_count,9,batsmen_stats[x][6])
 		row_count+=1		
