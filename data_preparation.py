@@ -1,12 +1,12 @@
 #Libraries to parse xls docs
 from xlrd import open_workbook,cellname
-
+import csv
 #Libraries to create xlx files for further use and data preparation
 import xlsxwriter
 
 
 #Open data sheet
-book = open_workbook('bat/batsmen_match_stats.xls')
+book = open_workbook('bowl/match_bowler_stats.xls')
 
 #Index data sheet
 sheet = book.sheet_by_index(0)
@@ -245,72 +245,90 @@ def calc_runs_per_match():
 					runs_per_match[curr_match_id].append(0)	
 	return runs_per_match							
 
+def map_matchid_year():
+	id_date = {}
+	with open('sample.csv', 'rU') as data:	
+		reader = csv.reader(data)
+		row = list(reader)
+		for x in row[2:]:
+			if x[1] not in id_date:
+				id_date[int(x[1])] = x[5].split("/")[2]
+	return id_date				
 
 def complete_batsmen_stats():
-	batsmen_stats = {}
+	matchid_yr = map_matchid_year()
+	yearly_batsmen_stats = {}
+	for x in matchid_yr:
+		curr_yr = matchid_yr[x]
+		if curr_yr not in yearly_batsmen_stats:
+			yearly_batsmen_stats[curr_yr] = {}
 	for row_index in range(1,sheet.nrows):
 		for col_index in range(sheet.ncols):
 			if cellname(row_index,col_index)[0] == 'B':
 				curr_batsmen = sheet.cell(row_index,col_index).value
-				if curr_batsmen not in batsmen_stats:
-					batsmen_stats[curr_batsmen] = [0,0,0,0,0,0,0]
+				curr_match_id = int(sheet.cell(row_index,col_index-1).value	)
+				curr_yr = matchid_yr[curr_match_id]
+				if curr_batsmen not in yearly_batsmen_stats[curr_yr]:
+					yearly_batsmen_stats[curr_yr][curr_batsmen] = [0,0,0,0,0,0,0]
 				curr_runs = sheet.cell(row_index,col_index+1).value	
 				curr_balls = sheet.cell(row_index,col_index+2).value
 				is_notout = sheet.cell(row_index,col_index+3).value
 
-				batsmen_stats[curr_batsmen][0]+=1
-				batsmen_stats[curr_batsmen][1]+=curr_balls
-				batsmen_stats[curr_batsmen][2]+=curr_runs
+				yearly_batsmen_stats[curr_yr][curr_batsmen][0]+=1
+				yearly_batsmen_stats[curr_yr][curr_batsmen][1]+=curr_balls
+				yearly_batsmen_stats[curr_yr][curr_batsmen][2]+=curr_runs
 				if is_notout == "YES":
-					batsmen_stats[curr_batsmen][3]+=1
-				if curr_runs > batsmen_stats[curr_batsmen][4]:
-					batsmen_stats[curr_batsmen][4]=curr_runs
+					yearly_batsmen_stats[curr_yr][curr_batsmen][3]+=1
+				if curr_runs > yearly_batsmen_stats[curr_yr][curr_batsmen][4]:
+					yearly_batsmen_stats[curr_yr][curr_batsmen][4]=curr_runs
 				if curr_runs in range(50,100):
-					batsmen_stats[curr_batsmen][5]+=1	
+					yearly_batsmen_stats[curr_yr][curr_batsmen][5]+=1	
 				if curr_runs >= 100:
-					batsmen_stats[curr_batsmen][6]+=1		
+					yearly_batsmen_stats[curr_yr][curr_batsmen][6]+=1					
+	for xx in yearly_batsmen_stats:
+		batsmen_stats = yearly_batsmen_stats[xx]
+		#Create new sheet
+		sheet_name = "complete_batsmen_stats"+str(xx)+".xls"
+		workbook,complete_batsmen_stats_sheet = create_new_sheet(sheet_name)
+		#Initialize rows,columns
+		row_count = 0
+		complete_batsmen_stats_sheet.write(0,0,"Player Name")
+		complete_batsmen_stats_sheet.write(0,1,"Number of Innings")
+		complete_batsmen_stats_sheet.write(0,2,"Balls Faced")
+		complete_batsmen_stats_sheet.write(0,3,"Total Runs")
+		complete_batsmen_stats_sheet.write(0,4,"NO")
+		complete_batsmen_stats_sheet.write(0,5,"HS")
+		complete_batsmen_stats_sheet.write(0,6,"AVG")
+		complete_batsmen_stats_sheet.write(0,7,"SR")
+		complete_batsmen_stats_sheet.write(0,8,"50's")
+		complete_batsmen_stats_sheet.write(0,9,"100's")
+		row_count+=1
 
-	#Create new sheet
-	workbook,complete_batsmen_stats_sheet = create_new_sheet("complete_batsmen_stats.xls")
-	#Initialize rows,columns
-	row_count = 0
-	complete_batsmen_stats_sheet.write(0,0,"Player Name")
-	complete_batsmen_stats_sheet.write(0,1,"Number of Innings")
-	complete_batsmen_stats_sheet.write(0,2,"Balls Faced")
-	complete_batsmen_stats_sheet.write(0,3,"Total Runs")
-	complete_batsmen_stats_sheet.write(0,4,"NO")
-	complete_batsmen_stats_sheet.write(0,5,"HS")
-	complete_batsmen_stats_sheet.write(0,6,"AVG")
-	complete_batsmen_stats_sheet.write(0,7,"SR")
-	complete_batsmen_stats_sheet.write(0,8,"50's")
-	complete_batsmen_stats_sheet.write(0,9,"100's")
-	row_count+=1
-
-	for x in batsmen_stats:
-		for y in batsmen_stats[x]:
-			complete_batsmen_stats_sheet.write(row_count,0,x)
-			complete_batsmen_stats_sheet.write(row_count,1,batsmen_stats[x][0])
-			complete_batsmen_stats_sheet.write(row_count,2,batsmen_stats[x][1])
-			complete_batsmen_stats_sheet.write(row_count,3,batsmen_stats[x][2])
-			complete_batsmen_stats_sheet.write(row_count,4,batsmen_stats[x][3])
-			complete_batsmen_stats_sheet.write(row_count,5,batsmen_stats[x][4])
-			dismissals = batsmen_stats[x][0]-batsmen_stats[x][3]
-			if dismissals != 0:
-				complete_batsmen_stats_sheet.write(row_count,6,"%.2f"%(float)(
-																batsmen_stats[x][2]/dismissals)
-																)
-			else:
-				complete_batsmen_stats_sheet.write(row_count,6,0)
-			if 	batsmen_stats[x][1] != 0:
-				complete_batsmen_stats_sheet.write(row_count,7,"%.2f"%(float)(
-																batsmen_stats[x][2]* 100/batsmen_stats[x][1]) 
-																)
-			else:
-				complete_batsmen_stats_sheet.write(row_count,7,0)
-			complete_batsmen_stats_sheet.write(row_count,8,batsmen_stats[x][5])
-			complete_batsmen_stats_sheet.write(row_count,9,batsmen_stats[x][6])
-		row_count+=1		
-	workbook.close()				
+		for x in batsmen_stats:
+			for y in batsmen_stats[x]:
+				complete_batsmen_stats_sheet.write(row_count,0,x)
+				complete_batsmen_stats_sheet.write(row_count,1,batsmen_stats[x][0])
+				complete_batsmen_stats_sheet.write(row_count,2,batsmen_stats[x][1])
+				complete_batsmen_stats_sheet.write(row_count,3,batsmen_stats[x][2])
+				complete_batsmen_stats_sheet.write(row_count,4,batsmen_stats[x][3])
+				complete_batsmen_stats_sheet.write(row_count,5,batsmen_stats[x][4])
+				dismissals = batsmen_stats[x][0]-batsmen_stats[x][3]
+				if dismissals != 0:
+					complete_batsmen_stats_sheet.write(row_count,6,"%.2f"%(float)(
+																	batsmen_stats[x][2]/dismissals)
+																	)
+				else:
+					complete_batsmen_stats_sheet.write(row_count,6,0)
+				if 	batsmen_stats[x][1] != 0:
+					complete_batsmen_stats_sheet.write(row_count,7,"%.2f"%(float)(
+																	batsmen_stats[x][2]* 100/batsmen_stats[x][1]) 
+																	)
+				else:
+					complete_batsmen_stats_sheet.write(row_count,7,0)
+				complete_batsmen_stats_sheet.write(row_count,8,batsmen_stats[x][5])
+				complete_batsmen_stats_sheet.write(row_count,9,batsmen_stats[x][6])
+			row_count+=1		
+		workbook.close()				
 
 
 
@@ -491,7 +509,12 @@ def map_match_bowler_stats():
 
 
 def complete_bowler_stats():
-	bowler_stats = {}
+	matchid_yr = map_matchid_year()
+	yearly_bowler_stats = {}
+	for x in matchid_yr:
+		curr_yr = matchid_yr[x]
+		if curr_yr not in yearly_bowler_stats:
+			yearly_bowler_stats[curr_yr] = {}
 	for row_index in range(2,sheet.nrows):
 		for col_index in range(1,sheet.ncols):
 			if cellname(row_index,col_index)[0] == 'B':
@@ -499,82 +522,89 @@ def complete_bowler_stats():
 				curr_balls = sheet.cell(row_index,col_index+1).value
 				curr_runs = sheet.cell(row_index,col_index+2).value
 				curr_wickets = sheet.cell(row_index,col_index+3).value
-				if curr_bowler not in bowler_stats:
-					bowler_stats[curr_bowler] = [0,0,0,0,[0,0],0]
-				bowler_stats[curr_bowler][0]+=1
-				bowler_stats[curr_bowler][1]+=curr_balls
-				bowler_stats[curr_bowler][2]+=curr_runs
-				bowler_stats[curr_bowler][3]+=curr_wickets
-				if curr_wickets > bowler_stats[curr_bowler][4][0]:
-					bowler_stats[curr_bowler][4][0] = curr_wickets
-					bowler_stats[curr_bowler][4][1] = curr_runs
-				elif curr_wickets == bowler_stats[curr_bowler][4][0]:
-					if curr_runs < bowler_stats[curr_bowler][4][1]:
-						bowler_stats[curr_bowler][4][1] = curr_runs
+				curr_match_id = int(sheet.cell(row_index,col_index-1).value	)
+				curr_yr = matchid_yr[curr_match_id]
+				if curr_bowler not in yearly_bowler_stats[curr_yr]:
+					yearly_bowler_stats[curr_yr][curr_bowler] = [0,0,0,0,[0,0],0]
+				yearly_bowler_stats[curr_yr][curr_bowler][0]+=1
+				yearly_bowler_stats[curr_yr][curr_bowler][1]+=curr_balls
+				yearly_bowler_stats[curr_yr][curr_bowler][2]+=curr_runs
+				yearly_bowler_stats[curr_yr][curr_bowler][3]+=curr_wickets
+				if curr_wickets > yearly_bowler_stats[curr_yr][curr_bowler][4][0]:
+					yearly_bowler_stats[curr_yr][curr_bowler][4][0] = curr_wickets
+					yearly_bowler_stats[curr_yr][curr_bowler][4][1] = curr_runs
+				elif curr_wickets == yearly_bowler_stats[curr_yr][curr_bowler][4][0]:
+					if curr_runs < yearly_bowler_stats[curr_yr][curr_bowler][4][1]:
+						yearly_bowler_stats[curr_yr][curr_bowler][4][1] = curr_runs
 				if curr_wickets >= 5:
-					bowler_stats[curr_bowler][5]+=1	
-	#Create new sheet
-	workbook,complete_bowler_stats_sheet = create_new_sheet("complete_bowler_stats.xls")
-	#Initialize rows,columns
-	row_count = 0
-	complete_bowler_stats_sheet.write(0,0,"Bowler")
-	complete_bowler_stats_sheet.write(0,1,"Innings")
-	complete_bowler_stats_sheet.write(0,2,"Balls")
-	complete_bowler_stats_sheet.write(0,3,"Runs")
-	complete_bowler_stats_sheet.write(0,4,"Wickets")
-	complete_bowler_stats_sheet.write(0,5,"Avg")
-	complete_bowler_stats_sheet.write(0,6,"Econ")
-	complete_bowler_stats_sheet.write(0,7,"SR")
-	complete_bowler_stats_sheet.write(0,8,"BBF")
-	complete_bowler_stats_sheet.write(0,9,"5W")
-	row_count+=1
-
-	for x in bowler_stats:
-		complete_bowler_stats_sheet.write(row_count,0,x)
-		complete_bowler_stats_sheet.write(row_count,1,bowler_stats[x][0])
-		complete_bowler_stats_sheet.write(row_count,2,bowler_stats[x][1])
-		complete_bowler_stats_sheet.write(row_count,3,bowler_stats[x][2])
-		complete_bowler_stats_sheet.write(row_count,4,bowler_stats[x][3])
-		if bowler_stats[x][3] != 0:
-			complete_bowler_stats_sheet.write(row_count,5,(
-											"%.2f"%(float)(bowler_stats[x][2]/
-											bowler_stats[x][3])
-											)
-										)
-		else:
-			complete_bowler_stats_sheet.write(row_count,5,"NA")
-		if bowler_stats[x][1] != 0:	
-			complete_bowler_stats_sheet.write(row_count,6,
-											"%.2f"%(float)(bowler_stats[x][2]*6/
-												bowler_stats[x][1]
-												)
-											)	
-		else:
-			complete_bowler_stats_sheet.write(row_count,6,0)
-		if bowler_stats[x][3] != 0:
-			complete_bowler_stats_sheet.write(row_count,7,(
-											"%.2f"%(float)(bowler_stats[x][1]/
-											bowler_stats[x][3])
-											)
-										)
-		else:
-			complete_bowler_stats_sheet.write(row_count,7,"NA")
-		complete_bowler_stats_sheet.write(row_count,8,str(bowler_stats[x][4][0])+"/"+str(bowler_stats[x][4][1]))			
-		complete_bowler_stats_sheet.write(row_count,9,bowler_stats[x][5])
+					yearly_bowler_stats[curr_yr][curr_bowler][5]+=1	
+	
+	for xx in yearly_bowler_stats:
+		bowler_stats = yearly_bowler_stats[xx]
+		#Create new sheet
+		sheet_name = "complete_bowler_stats"+str(xx)+".xls"
+		#Create new sheet
+		workbook,complete_bowler_stats_sheet = create_new_sheet(sheet_name)
+		#Initialize rows,columns
+		row_count = 0
+		complete_bowler_stats_sheet.write(0,0,"Bowler")
+		complete_bowler_stats_sheet.write(0,1,"Innings")
+		complete_bowler_stats_sheet.write(0,2,"Balls")
+		complete_bowler_stats_sheet.write(0,3,"Runs")
+		complete_bowler_stats_sheet.write(0,4,"Wickets")
+		complete_bowler_stats_sheet.write(0,5,"Avg")
+		complete_bowler_stats_sheet.write(0,6,"Econ")
+		complete_bowler_stats_sheet.write(0,7,"SR")
+		complete_bowler_stats_sheet.write(0,8,"BBF")
+		complete_bowler_stats_sheet.write(0,9,"5W")
 		row_count+=1
-	workbook.close()
+
+		for x in bowler_stats:
+			complete_bowler_stats_sheet.write(row_count,0,x)
+			complete_bowler_stats_sheet.write(row_count,1,bowler_stats[x][0])
+			complete_bowler_stats_sheet.write(row_count,2,bowler_stats[x][1])
+			complete_bowler_stats_sheet.write(row_count,3,bowler_stats[x][2])
+			complete_bowler_stats_sheet.write(row_count,4,bowler_stats[x][3])
+			if bowler_stats[x][3] != 0:
+				complete_bowler_stats_sheet.write(row_count,5,(
+												"%.2f"%(float)(bowler_stats[x][2]/
+												bowler_stats[x][3])
+												)
+											)
+			else:
+				complete_bowler_stats_sheet.write(row_count,5,"NA")
+			if bowler_stats[x][1] != 0:	
+				complete_bowler_stats_sheet.write(row_count,6,
+												"%.2f"%(float)(bowler_stats[x][2]*6/
+													bowler_stats[x][1]
+													)
+												)	
+			else:
+				complete_bowler_stats_sheet.write(row_count,6,0)
+			if bowler_stats[x][3] != 0:
+				complete_bowler_stats_sheet.write(row_count,7,(
+												"%.2f"%(float)(bowler_stats[x][1]/
+												bowler_stats[x][3])
+												)
+											)
+			else:
+				complete_bowler_stats_sheet.write(row_count,7,"NA")
+			complete_bowler_stats_sheet.write(row_count,8,str(bowler_stats[x][4][0])+"/"+str(bowler_stats[x][4][1]))			
+			complete_bowler_stats_sheet.write(row_count,9,bowler_stats[x][5])
+			row_count+=1
+		workbook.close()
 
 
 
 
 #print(check_total_runs())
-#complete_bowler_stats()
+complete_bowler_stats()
 #map_batsmen_stats()
 #map_matchid_team()
 #map_team_match_count()
 #map_match_bowler_stats()
 #score_batsmen_match()
 #match_stats()
-complete_batsmen_stats()
+#complete_batsmen_stats()
 
 
