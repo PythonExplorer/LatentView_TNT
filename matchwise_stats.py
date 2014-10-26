@@ -253,7 +253,32 @@ def extreme_totals(sheet_name):
 						min_matchid = curr_matchid
 	print(max_matchid,min_matchid)					
 
+def mom_count(sheet_name):
+	sheet = open(sheet_name)
+	player_mom_count = {}
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'O':
+				curr_player = sheet.cell(row_index,col_index).value
+				if curr_player not in player_mom_count and curr_player != "":
+					player_mom_count[curr_player] = 0
+				if curr_player != "":	
+					player_mom_count[curr_player]+=1
 
+	#Create new sheet
+	workbook,mom_count_sheet = create_new_sheet("mom_count.xls")
+	#Initialize rows,columns
+	row_count = 0
+	mom_count_sheet.write(0,0,"Player Name")
+	mom_count_sheet.write(0,1,"MOM Count")	
+	row_count+=1
+	for x in player_mom_count:
+		mom_count_sheet.write(row_count,0,x)	
+		mom_count_sheet.write(row_count,1,player_mom_count[x])
+		row_count+=1
+	workbook.close()								
+
+mom_count("match/complete_match_stats.xls")
 #extreme_totals("match/complete_match_stats.xls")
 #largest_margin("match/complete_match_stats.xls")
 #toss_stats("match/complete_match_stats.xls")
