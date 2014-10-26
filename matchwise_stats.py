@@ -131,9 +131,135 @@ def team_avg_scores(sheet_name):
 		row_count+=1
 	workbook.close()	
 
-team_avg_scores("match/complete_match_stats.xls")
-#winning_probabilities("match/complete_match_stats.xls")			
+def toss_stats(sheet_name):
+	sheet = open(sheet_name)
+	team_toss_stats = {}
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'B':
+				curr_team =  sheet.cell(row_index,col_index).value
+				opp_team = sheet.cell(row_index,col_index+1).value
+				toss_winner = sheet.cell(row_index,col_index+2).value
+				winner_decision = sheet.cell(row_index,col_index+3).value
+				match_winner = sheet.cell(row_index,col_index+12).value
+				if curr_team not in team_toss_stats:
+					team_toss_stats[curr_team] = [0,0,0,0,0,0]
+				if opp_team not in team_toss_stats:
+					team_toss_stats[opp_team] = [0,0,0,0,0,0]
+				team_toss_stats[curr_team][0]+=1
+				team_toss_stats[opp_team][0]+=1
+				if toss_winner == curr_team:
+					team_toss_stats[curr_team][1]+=1
+					if winner_decision == "bat":
+						team_toss_stats[curr_team][2]+=1
+						if match_winner == curr_team:
+							team_toss_stats[curr_team][4]+=1
+					if winner_decision == "field":
+						team_toss_stats[curr_team][3]+=1
+						if match_winner == curr_team:
+							team_toss_stats[curr_team][5]+=1
+				if toss_winner == opp_team:
+					team_toss_stats[opp_team][1]+=1	
+					if winner_decision == "bat":
+						team_toss_stats[opp_team][2]+=1
+						if match_winner == opp_team:
+							team_toss_stats[opp_team][4]+=1
+					if winner_decision == "feild":
+						team_toss_stats[opp_team][3]+=1
+						if match_winner == opp_team:
+							team_toss_stats[opp_team][5]+=1
+	#Create new sheet
+	workbook,toss_stats_sheet = create_new_sheet("toss_stats.xls")
+	#Initialize rows,columns
+	row_count = 0
+	toss_stats_sheet.write(0,0,"Team Name")
+	toss_stats_sheet.write(0,1,"Total No of Matches")	
+	toss_stats_sheet.write(0,2,"Toss Wins")
+	toss_stats_sheet.write(0,3,"Toss wins bat")					
+	toss_stats_sheet.write(0,4,"Toss wins bowl")
+	toss_stats_sheet.write(0,5,"Toss wins bat win")
+	toss_stats_sheet.write(0,6,"Toss wins bowl win")
+	row_count+=1
+	for x in team_toss_stats:
+		toss_stats_sheet.write(row_count,0,x)
+		for y in range(0,6):
+			toss_stats_sheet.write(row_count,y+1,team_toss_stats[x][y])
+		row_count+=1
+	workbook.close()	
 
+def ducks_stats(sheet_name):
+	sheet = open(sheet_name)
+	batsmen_duck_count = {}
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'A':
+				curr_player = sheet.cell(row_index,col_index+1).value
+				player_runs = sheet.cell(row_index,col_index+2).value
+				is_notout = sheet.cell(row_index,col_index+4).value
+				if player_runs == 0 and is_notout == "NO":
+					if curr_player not in batsmen_duck_count:
+						batsmen_duck_count[curr_player]=0
+					batsmen_duck_count[curr_player]+=1
+	#Create new sheet
+	workbook,ducks_stats_sheet = create_new_sheet("ducks_stats.xls")
+	#Initialize rows,columns
+	row_count = 0
+	ducks_stats_sheet.write(0,0,"Player Name")
+	ducks_stats_sheet.write(0,1,"Ducks Count")	
+	row_count+=1
+	for x in batsmen_duck_count:
+		ducks_stats_sheet.write(row_count,0,x)	
+		ducks_stats_sheet.write(row_count,1,batsmen_duck_count[x])
+		row_count+=1
+	workbook.close()							
+							
+def largest_margin(sheet_name):
+	matchid = 0
+	max_margin = -1
+	sheet = open(sheet_name)
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'H':
+				curr_matchid = sheet.cell(row_index,col_index-7).value  
+				score1 = sheet.cell(row_index,col_index).value
+				score2 = sheet.cell(row_index,col_index+3).value
+				result = sheet.cell(row_index,col_index+6).value
+				if result != "No Result":
+					if max_margin < abs(score1-score2):
+						max_margin = abs(score1-score2)
+						matchid = curr_matchid
+	print(matchid)					
+
+def extreme_totals(sheet_name):
+	sheet = open(sheet_name)
+	max_matchid = 0
+	min_matchid = 0
+	max_total = -1
+	min_total = 500
+	sheet = open(sheet_name)
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'H':
+				curr_matchid = sheet.cell(row_index,col_index-7).value 
+				score1 = sheet.cell(row_index,col_index).value
+				score2 = sheet.cell(row_index,col_index+3).value
+				result = sheet.cell(row_index,col_index+6).value
+				if result != "No Result":
+					if max_total < max(score2,score1):
+						max_total = max(score2,score1)
+						max_matchid = curr_matchid
+					if min_total > min(score2,score1):
+						min_total = min(score2,score1)	
+						min_matchid = curr_matchid
+	print(max_matchid,min_matchid)					
+
+
+#extreme_totals("match/complete_match_stats.xls")
+#largest_margin("match/complete_match_stats.xls")
+#toss_stats("match/complete_match_stats.xls")
+#team_avg_scores("match/complete_match_stats.xls")
+#winning_probabilities("match/complete_match_stats.xls")			
+#ducks_stats("bat/batsmen_match_stats.xls")
 
 
 
