@@ -278,7 +278,94 @@ def mom_count(sheet_name):
 		row_count+=1
 	workbook.close()								
 
-mom_count("match/complete_match_stats.xls")
+def total_venues(sheet_name):
+	sheet = open(sheet_name)
+	venues = {}
+	count = 0
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'K':
+				curr_stadium = sheet.cell(row_index,col_index).value
+				if curr_stadium not in venues:
+					venues[curr_stadium]=0
+					count+=1
+				venues[curr_stadium]+=1
+	print(count)
+
+def total_runs_wkts_ties(sheet_name):
+	sheet = open(sheet_name)
+	total_runs = 0
+	total_wkts = 0
+	total_ties = 0
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'H':
+				scr1 = sheet.cell(row_index,col_index).value
+				w1 = sheet.cell(row_index,col_index+1).value
+				scr2 = sheet.cell(row_index,col_index+3).value
+				w2 = sheet.cell(row_index,col_index+4).value
+				result = sheet.cell(row_index,col_index+6).value
+				if result == "Tie":
+					total_ties+=1
+				total_runs+=(scr1+scr2)
+				total_wkts+=(w1+w2)
+	print("Total Runs : ",total_runs)
+	print("Total Wkts : ",total_wkts)
+	print("Total Ties : ",total_ties)		
+
+
+def total_c_hc(sheet_name):
+	sheet = open(sheet_name)
+	total_c = 0
+	total_hc = 0	
+	total_balls = 0		
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'C':
+				curr_score = sheet.cell(row_index,col_index).value
+				curr_balls = sheet.cell(row_index,col_index+1).value
+				if curr_score in range(50,100):
+					total_hc+=1
+				if curr_score in range(100,220):
+					total_c+=1				
+				total_balls+=curr_balls
+	print("Total balls : ",total_balls)
+	print("Total Centuries : ",total_c)
+	print("Total Half Centuries : ",total_hc)
+
+def fwkts(sheet_name):
+	fw = 0
+	sheet = open(sheet_name)
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'E':
+				curr_wickets = sheet.cell(row_index,col_index).value			
+				if curr_wickets >= 5:
+					fw+=1
+	print("Total 5 Wkt Hauls : ",fw)	
+	
+def total_boundaries(sheet_name):
+	total_fours = 0
+	total_sixes = 0
+	total_dots = 0
+	sheet = open(sheet_name)
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'S':
+				curr_runs = sheet.cell(row_index,col_index).value
+				if curr_runs == 6:
+					total_sixes+=1
+				if curr_runs == 4:
+					total_fours+=1
+				if total_runs == 0:
+					total_dots+=1
+	print("Total 6's : ",total_sixes)
+	print("Total 4's : ", total_fours)
+	print("Total dots : ", total_dots)					
+
+
+
+#mom_count("match/complete_match_stats.xls")
 #extreme_totals("match/complete_match_stats.xls")
 #largest_margin("match/complete_match_stats.xls")
 #toss_stats("match/complete_match_stats.xls")
