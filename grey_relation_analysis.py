@@ -106,7 +106,7 @@ def normalize_complete_bowler_stats(yr):
 		else:			
 			normalized_complete_bowler_stats_sheet.write(row_count,2,
 																"%.2f"%((float(avg[x]) - min_avg) / (max_avg - min_avg))															
-																)
+							-									)
 		if max_sr == min_sr:
 			normalized_complete_bowler_stats_sheet.write(row_count,3,0)
 		else:			

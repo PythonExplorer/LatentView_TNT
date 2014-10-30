@@ -1,6 +1,6 @@
 #Libraries to parse xls docs
 from xlrd import open_workbook,cellname
-
+import operator
 #Libraries to create xlx files for further use and data preparation
 import xlsxwriter
 
@@ -96,12 +96,14 @@ def team_avg_scores(sheet_name):
 				wik1 = float(sheet.cell(row_index,col_index+5).value)
 				score2 = float(sheet.cell(row_index,col_index+7).value)
 				wik2 = float(sheet.cell(row_index,col_index+8).value)
-				teams[bat1][0]+=1
-				teams[bat2][5]+=1
-				teams[bat1][1]+=score1
-				teams[bat2][3]+=score2
-				teams[bat1][2]+=wik1
-				teams[bat2][4]+=wik2
+				result = sheet.cell(row_index,col_index+10).value
+				if result != "No Result":
+					teams[bat1][0]+=1
+					teams[bat2][5]+=1
+					teams[bat1][1]+=score1
+					teams[bat2][3]+=score2
+					teams[bat1][2]+=wik1
+					teams[bat2][4]+=wik2
 	#Create new sheet
 	workbook,team_scores_sheet = create_new_sheet("team_scores.xls")
 	#Initialize rows,columns
@@ -111,6 +113,7 @@ def team_avg_scores(sheet_name):
 	team_scores_sheet.write(0,2,"Avg score-1")
 	team_scores_sheet.write(0,3,"Avg wkt-1")
 	team_scores_sheet.write(0,4,"Avg score-2")
+	team_scores_sheet.write(0,5,"Avg wkt-2")
 	team_scores_sheet.write(0,5,"Avg wkt-2")
 	row_count+=1
 	for x in teams:
@@ -357,14 +360,80 @@ def total_boundaries(sheet_name):
 					total_sixes+=1
 				if curr_runs == 4:
 					total_fours+=1
-				if total_runs == 0:
+				if curr_runs == 0:
 					total_dots+=1
 	print("Total 6's : ",total_sixes)
 	print("Total 4's : ", total_fours)
 	print("Total dots : ", total_dots)					
 
 
+def total_venues(sheet_name):
+	venues = {}
+	res = 0
+	sheet = open(sheet_name)
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'K':
+				curr_venue = sheet.cell(row_index,col_index).value
+				if curr_venue not in venues:
+					venues[curr_venue]=0
+					res+=1
+				venues[curr_venue]+=1
+	print(len(venues))
+	for x in venues:
+		print(x,venues[x])
 
+
+def most_catches_stumps(sheet_name):
+	catches = {}
+	stumps = {}
+	sheet = open(sheet_name)
+	run_outs = 0
+	rvic = {}
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'Y':
+				wicket_kind = sheet.cell(row_index,col_index).value
+				fielder = sheet.cell(row_index,col_index+1).value
+				victim = sheet.cell(row_index,col_index+2).value
+				if wicket_kind == "run out":
+					run_outs+=1
+					if victim not in rvic:
+						rvic[victim] = 0
+					rvic[victim]+=1		
+				if wicket_kind == "caught":
+					if fielder not in catches:
+						catches[fielder] = 0
+					catches[fielder]+=1
+				if wicket_kind == "stumps":
+					if fielder not in stumps:
+						stumps[fielder] = 0
+					stumps[fielder]+=1			
+	print(run_outs)
+	s_rvic = sorted(rvic.items(), key=operator.itemgetter(1))
+	s_catches = sorted(catches.items(), key=operator.itemgetter(1))
+	s_stumps = sorted(stumps.items(), key=operator.itemgetter(1))
+	print(s_rvic)
+	print(s_catches)
+	print(s_stumps)				
+
+def all_types_outs(sheet_name):
+	w = {}
+	sheet = open(sheet_name)
+	for row_index in range(1,sheet.nrows):
+		for col_index in range(0,sheet.ncols):
+			if cellname(row_index,col_index)[0] == 'Y':
+				wicket_kind = sheet.cell(row_index,col_index).value
+				if wicket_kind not in w:
+					w[wicket_kind] = 0
+				w[wicket_kind]+=1
+	print(w)				
+
+#all_types_outs("Cricket_Dataset.xls")
+#most_catches_stumps("Cricket_Dataset.xls")
+#total_boundaries("Cricket_Dataset.xls")
+#total_c_hc("bat/batsmen_match_stats.xls")
+#total_venues("Cricket_Dataset.xls")
 #mom_count("match/complete_match_stats.xls")
 #extreme_totals("match/complete_match_stats.xls")
 #largest_margin("match/complete_match_stats.xls")

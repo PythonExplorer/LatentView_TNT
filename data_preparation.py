@@ -6,7 +6,7 @@ import xlsxwriter
 
 
 #Open data sheet
-book = open_workbook('bowl/match_bowler_stats.xls')
+book = open_workbook('Cricket_Dataset.xls')
 
 #Index data sheet
 sheet = book.sheet_by_index(0)
@@ -466,7 +466,7 @@ def map_match_bowler_stats():
 							match_bowler_stats[curr_match_id][curr_bowler][0]+=1
 						match_bowler_stats[curr_match_id][curr_bowler][1]+=curr_runs
 						is_wicket = sheet.cell(row_index,col_index+22).value
-						if is_wicket != "run out" and is_wicket != "":
+						if is_wicket in ["caught","caught and bowled","stumped","bowled","lbw"]:
 							match_bowler_stats[curr_match_id][curr_bowler][2]+=1
 					else:
 						match_bowler_stats[curr_match_id][curr_bowler]=	[0,0,0]
@@ -474,7 +474,7 @@ def map_match_bowler_stats():
 							match_bowler_stats[curr_match_id][curr_bowler][0]+=1
 						match_bowler_stats[curr_match_id][curr_bowler][1]+=curr_runs
 						is_wicket = sheet.cell(row_index,col_index+22).value
-						if is_wicket != "run out" and is_wicket != "":
+						if is_wicket in ["caught","caught and bowled","stumped","bowled","lbw"]:
 							match_bowler_stats[curr_match_id][curr_bowler][2]+=1
 				else:
 					match_bowler_stats[curr_match_id] = {}
@@ -483,7 +483,7 @@ def map_match_bowler_stats():
 						match_bowler_stats[curr_match_id][curr_bowler][0]+=1
 					match_bowler_stats[curr_match_id][curr_bowler][1]+=curr_runs
 					is_wicket = sheet.cell(row_index,col_index+22).value
-					if is_wicket != "run out" and is_wicket != "":
+					if is_wicket  in ["caught","caught and bowled","stumped","bowled","lbw"]:
 						match_bowler_stats[curr_match_id][curr_bowler][2]+=1
 	#Create new sheet
 	workbook,match_bowler_stats_sheet = create_new_sheet("match_bowler_stats.xls")
@@ -598,11 +598,10 @@ def complete_bowler_stats():
 
 
 #print(check_total_runs())
-complete_bowler_stats()
 #map_batsmen_stats()
 #map_matchid_team()
 #map_team_match_count()
-#map_match_bowler_stats()
+map_match_bowler_stats()
 #score_batsmen_match()
 #match_stats()
 #complete_batsmen_stats()
